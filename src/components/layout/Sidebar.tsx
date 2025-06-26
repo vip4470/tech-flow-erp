@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,8 +8,10 @@ import {
   TrendingUp,
   Settings,
   HelpCircle,
-  ChevronLeft
+  ChevronLeft,
+  Shield
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   activeModule: string;
@@ -20,14 +21,20 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, color: "text-blue-600" },
-  { id: "crm", label: "CRM", icon: Users, color: "text-green-600" },
-  { id: "hr", label: "HR Management", icon: UserCheck, color: "text-purple-600" },
-  { id: "projects", label: "Projects", icon: FolderOpen, color: "text-orange-600" },
-  { id: "sales", label: "Sales", icon: TrendingUp, color: "text-red-600" },
+  { id: "dashboard", label: "Dashboard", icon: Home, color: "text-blue-600", permission: "dashboard" },
+  { id: "crm", label: "CRM", icon: Users, color: "text-green-600", permission: "crm" },
+  { id: "hr", label: "HR Management", icon: UserCheck, color: "text-purple-600", permission: "hr" },
+  { id: "projects", label: "Projects", icon: FolderOpen, color: "text-orange-600", permission: "projects" },
+  { id: "sales", label: "Sales", icon: TrendingUp, color: "text-red-600", permission: "sales" },
 ];
 
 export const Sidebar = ({ activeModule, setActiveModule, isOpen, onToggle }: SidebarProps) => {
+  const { user, hasPermission } = useAuth();
+
+  const handleModuleClick = (moduleId: string) => {
+    setActiveModule(moduleId);
+  };
+
   return (
     <div className={cn(
       "bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col",
@@ -40,7 +47,12 @@ export const Sidebar = ({ activeModule, setActiveModule, isOpen, onToggle }: Sid
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">ERP</span>
             </div>
-            <span className="font-bold text-gray-800">TechCorp ERP</span>
+            <div>
+              <span className="font-bold text-gray-800">TechCorp ERP</span>
+              {user && (
+                <div className="text-xs text-gray-500">{user.role.name}</div>
+              )}
+            </div>
           </div>
         )}
         <Button
@@ -61,6 +73,9 @@ export const Sidebar = ({ activeModule, setActiveModule, isOpen, onToggle }: Sid
         {menuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = activeModule === item.id;
+          const hasAccess = hasPermission(item.permission, "read");
+          
+          if (!hasAccess) return null;
           
           return (
             <Button
@@ -71,7 +86,7 @@ export const Sidebar = ({ activeModule, setActiveModule, isOpen, onToggle }: Sid
                 isActive && "bg-blue-50 border-r-2 border-blue-600",
                 !isOpen && "justify-center px-2"
               )}
-              onClick={() => setActiveModule(item.id)}
+              onClick={() => handleModuleClick(item.id)}
             >
               <IconComponent className={cn("h-5 w-5", item.color, !isOpen && "mx-auto")} />
               {isOpen && <span className="ml-3 font-medium">{item.label}</span>}
@@ -82,6 +97,20 @@ export const Sidebar = ({ activeModule, setActiveModule, isOpen, onToggle }: Sid
 
       {/* Footer */}
       <div className="p-2 border-t border-gray-200 space-y-1">
+        {hasPermission("settings", "read") && (
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start hover:bg-gray-100",
+              !isOpen && "justify-center px-2",
+              activeModule === "settings" && "bg-blue-50"
+            )}
+            onClick={() => handleModuleClick("settings")}
+          >
+            <Shield className="h-5 w-5 text-gray-500" />
+            {isOpen && <span className="ml-3 font-medium text-gray-600">Role Manager</span>}
+          </Button>
+        )}
         <Button
           variant="ghost"
           className={cn(

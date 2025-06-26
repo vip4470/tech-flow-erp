@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,10 +11,21 @@ import {
   Mail, 
   MapPin,
   Filter,
-  MoreHorizontal
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 
 export const CRMModule = () => {
+  const { hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const leads = [
@@ -74,6 +84,29 @@ export const CRMModule = () => {
     }
   };
 
+  const handleLeadAction = (action: string, leadId: number) => {
+    console.log(`${action} lead ${leadId}`);
+    // Implement lead action functionality
+  };
+
+  const handleAddLead = () => {
+    console.log("Adding new lead");
+    // Implement add lead functionality
+  };
+
+  const handleFilter = () => {
+    console.log("Opening filter options");
+    // Implement filter functionality
+  };
+
+  if (!hasPermission("crm", "read")) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Access denied. CRM permissions required.</p>
+      </div>
+    );
+  }
+
   const filteredLeads = leads.filter(lead =>
     lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lead.contact.toLowerCase().includes(searchTerm.toLowerCase())
@@ -93,15 +126,17 @@ export const CRMModule = () => {
               className="pl-10"
             />
           </div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleFilter}>
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Lead
-        </Button>
+        {hasPermission("crm", "write") && (
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddLead}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Lead
+          </Button>
+        )}
       </div>
 
       {/* Stats Overview */}
@@ -175,9 +210,35 @@ export const CRMModule = () => {
                   <div className="text-right space-y-1">
                     <div className="text-lg font-semibold text-green-600">{lead.value}</div>
                     <div className="text-sm text-gray-500">Last contact: {lead.lastContact}</div>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleLeadAction("view", lead.id)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        {hasPermission("crm", "write") && (
+                          <DropdownMenuItem onClick={() => handleLeadAction("edit", lead.id)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Lead
+                          </DropdownMenuItem>
+                        )}
+                        {hasPermission("crm", "delete") && (
+                          <DropdownMenuItem 
+                            onClick={() => handleLeadAction("delete", lead.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Lead
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>

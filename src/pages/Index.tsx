@@ -7,6 +7,8 @@ import { CRMModule } from "@/components/modules/CRMModule";
 import { HRModule } from "@/components/modules/HRModule";
 import { ProjectModule } from "@/components/modules/ProjectModule";
 import { SalesModule } from "@/components/modules/SalesModule";
+import { RolePermissionManager } from "@/components/RolePermissionManager";
+import { AuthProvider } from "@/hooks/useAuth";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
@@ -22,29 +24,33 @@ const Index = () => {
         return <ProjectModule />;
       case "sales":
         return <SalesModule />;
+      case "settings":
+        return <RolePermissionManager />;
       default:
         return <DashboardOverview />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar 
-        activeModule={activeModule} 
-        setActiveModule={setActiveModule}
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
-      <div className="flex-1 flex flex-col">
-        <Header 
-          activeModule={activeModule}
-          onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+    <AuthProvider>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar 
+          activeModule={activeModule} 
+          setActiveModule={setActiveModule}
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        <main className="flex-1 overflow-auto p-6">
-          {renderActiveModule()}
-        </main>
+        <div className="flex-1 flex flex-col">
+          <Header 
+            activeModule={activeModule}
+            onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
+          <main className="flex-1 overflow-auto p-6">
+            {renderActiveModule()}
+          </main>
+        </div>
       </div>
-    </div>
+    </AuthProvider>
   );
 };
 
